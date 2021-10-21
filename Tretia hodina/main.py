@@ -26,4 +26,5 @@ stlpce = int(input("Zadaj pocet stlpcov"))
 for i in range(0,stlpce):
     for j in range(0,riadky):
         print("*", end = "")
-    print()
+        print()
+
