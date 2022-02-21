@@ -83,24 +83,44 @@ class Tetris:
                         self.pole[i][j] = self.pole[i1 - 1][j]
         self.score += rada ** 2
 
-
-
-
-
-
-
-
-
+    def go_space(self):
+        while not self.intersects():
+            self.kocka.y += 1
+        self.kocka.y -= 1
+        self.freeze()
+    def go_down(self):
+        self.kocka.y += 1
+        if self.intersects():
+            self.kocka.y -= 1
+            self.freeze()
+    def freeze(self):
+        for i in range(4):
+            for j in range(4):
+                if i * 4 + j in self.kocka.image():
+                    self.pole[i + self.kocka.y][j + self.kocka.x] = self.kocka.farba
+        self.zmiznutie_rady()
+        self.nova_kocka()
+        if self.intersects():
+            self.state = "gameover"
+    def go_side(self,dx):
+        old_x = self.kocka.x
+        self.kocka.x += dx
+        if self.intersects():
+            self.kocka.x = old_x
+    def rotate(self):
+        old_rotation = self.kocka.otacanie
+        self.kocka.rotate()
+        if self.intersects():
+            self.kocka.otacanie = old_rotation
 
 pygame.init()
 
 čierna = (0,0,0)
 biela = (255,255,255)
-červená = (255,0,0)
-zelená = (0,255,0)
-žltá = (255,255,0)
+
 
 veľkosť = 750,500
+
 obrazovka = pygame.display.set_mode(veľkosť)
 pygame.display.set_caption("Tetris")
 
@@ -115,13 +135,31 @@ pressing_down = False
 while not done:
     if game.kocka is None:
         game.nova_kocka()
-    počítadlo += 1
+        počítadlo += 1
     if počítadlo > 1000000:
         počítadlo = 0
     if počítadlo % (fps// game.level//2) == 0 or pressing_down:
         if game.state == "start":
             game.go_down()
-
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            done = True
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                game.rotate()
+            if event.key == pygame.K_DOWN:
+                pressing_down == True
+            if event.key == pygame.K_LEFT:
+                game.go_side(-1)
+            if event.key == pygame.K_RIGTH:
+                game.go_side(1)
+            if event.key == pygame.K_SPACE:
+                game.go_space()
+            if event.key == pygame.K_ESCAPE:
+                game.__init__(20,10)
+    if event.type == pygame.KEYUP:
+            if event.key == pygame.K_DOWN:
+                pressing_down == False
 
 
 
@@ -132,6 +170,16 @@ while not done:
 
 
 pygame.quit()
+
+
+
+
+
+
+
+
+
+
 
 
 
