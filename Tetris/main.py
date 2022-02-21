@@ -1,18 +1,23 @@
 import pygame
 import random
 
-farby_kociek = [(0, 0, 0),
-    (120, 37, 179),
-    (100, 179, 179),
-    (80, 34, 22),
-    (80, 134, 22),
-    (180, 34, 22),
-    (180, 34, 122),
+colors = [
+    (0,0,0),
+    (255,255,255),
+    (255,0,0),
+    (0,255,0),
+    (0,0,255),
+    (255,255,0),
+    (0,255,255),
+    (255,0,255)
 ]
-class kocka:
+
+
+class Figure:
     x = 0
     y = 0
-    druhy_kociek = [
+
+    figures = [
         [[1, 5, 9, 13], [4, 5, 6, 7]],
         [[4, 5, 9, 10], [2, 6, 5, 9]],
         [[6, 7, 9, 10], [1, 5, 6, 10]],
@@ -21,126 +26,142 @@ class kocka:
         [[1, 4, 5, 6], [1, 4, 5, 9], [4, 5, 6, 9], [1, 5, 6, 9]],
         [[1, 2, 5, 6]],
     ]
-    def __init_(self, x, y):
+
+    def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.typ = random.randint(0, len(self.druhy_kociek) -1)
-        self.farba = random.randint(1, len(farby_kociek) -1)
-        self.otacanie = 0
+        self.type = random.randint(0, len(self.figures) - 1)
+        self.color = random.randint(1, len(colors) - 1)
+        self.rotation = 0
+
     def image(self):
-        return self.druhy_kociek[self.typ][self.otacanie]
+        return self.figures[self.type][self.rotation]
+
+    def rotate(self):
+        self.rotation = (self.rotation + 1) % len(self.figures[self.type])
 
 
-    def otacanie(self):
-        self.otacanie = (self.otacanie + 1) % len(self.druhy_kociek[self.typ])
 class Tetris:
     level = 2
-    skore = 0
-    zoom = 20
+    score = 0
     state = "start"
-    pole = []
-    výška = 0
-    šírka = 0
+    field = []
+    height = 0
+    width = 0
     x = 100
     y = 60
-    kocka = None
+    zoom = 20
+    figure = None
 
-    def __init__(self, výška,šírka):
-        self.výška = výška
-        self.šírka = šírka
-        self.pole = []
-        self.skore = 0
+    def __init__(self, height, width):
+        self.height = height
+        self.width = width
+        self.field = []
+        self.score = 0
         self.state = "start"
-        for i in range(výška):
-            nová_rada = []
-            for j in range(šírka):
-                nová_rada.append(0)
-            self.pole.append(nová_rada)
-    def nova_kocka(self):
-        self.kocka = kocka(3,0)
-    def dotyk(self):
+        for i in range(height):
+            new_line = []
+            for j in range(width):
+                new_line.append(0)
+            self.field.append(new_line)
+
+    def new_figure(self):
+        self.figure = Figure(3, 0)
+
+    def intersects(self):
         intersection = False
         for i in range(4):
             for j in range(4):
-                if i * 4 + j in self.kocka.image():
-                    if i + self.kocka.y > self.vyska - 1 or \
-                            j + self.kocka.x > self.sirka - 1 or \
-                            j + self.kocka.x < 0 or \
-                            self.pole[i + self.kocka.y][j + self.kocka.x] > 0:
+                if i * 4 + j in self.figure.image():
+                    if i + self.figure.y > self.height - 1 or \
+                            j + self.figure.x > self.width - 1 or \
+                            j + self.figure.x < 0 or \
+                            self.field[i + self.figure.y][j + self.figure.x] > 0:
                         intersection = True
         return intersection
-    def zmiznutie_rady(self):
-        rada = 0
-        for i in range(1,self.vyska):
-            nuly = 0
-            for j in range(self.sirka):
-                if self.pole[i][j] == 0:
-                    nuly += 1
-            if nuly == 0:
-                rada += 1
-                for i1 in range(i,1,-1):
-                    for j in range(self.sirka):
-                        self.pole[i][j] = self.pole[i1 - 1][j]
-        self.score += rada ** 2
+
+    def break_lines(self):
+        lines = 0
+        for i in range(1, self.height):
+            zeros = 0
+            for j in range(self.width):
+                if self.field[i][j] == 0:
+                    zeros += 1
+            if zeros == 0:
+                lines += 1
+                for i1 in range(i, 1, -1):
+                    for j in range(self.width):
+                        self.field[i1][j] = self.field[i1 - 1][j]
+        self.score += lines ** 2
 
     def go_space(self):
         while not self.intersects():
-            self.kocka.y += 1
-        self.kocka.y -= 1
+            self.figure.y += 1
+        self.figure.y -= 1
         self.freeze()
+
     def go_down(self):
-        self.kocka.y += 1
+        self.figure.y += 1
         if self.intersects():
-            self.kocka.y -= 1
+            self.figure.y -= 1
             self.freeze()
+
     def freeze(self):
         for i in range(4):
             for j in range(4):
-                if i * 4 + j in self.kocka.image():
-                    self.pole[i + self.kocka.y][j + self.kocka.x] = self.kocka.farba
-        self.zmiznutie_rady()
-        self.nova_kocka()
+                if i * 4 + j in self.figure.image():
+                    self.field[i + self.figure.y][j + self.figure.x] = self.figure.color
+        self.break_lines()
+        self.new_figure()
         if self.intersects():
             self.state = "gameover"
-    def go_side(self,dx):
-        old_x = self.kocka.x
-        self.kocka.x += dx
-        if self.intersects():
-            self.kocka.x = old_x
-    def rotate(self):
-        old_rotation = self.kocka.otacanie
-        self.kocka.rotate()
-        if self.intersects():
-            self.kocka.otacanie = old_rotation
 
+    def go_side(self, dx):
+        old_x = self.figure.x
+        self.figure.x += dx
+        if self.intersects():
+            self.figure.x = old_x
+
+    def rotate(self):
+        old_rotation = self.figure.rotation
+        self.figure.rotate()
+        if self.intersects():
+            self.figure.rotation = old_rotation
+
+
+# Initialize the game engine
 pygame.init()
 
-čierna = (0,0,0)
-biela = (255,255,255)
+# Define some colors
+ČIERNA = (0, 0, 0)
+BIELA = (255, 255, 255)
+ŠEDÁ = (128, 128, 128)
 
+size = (400, 500)
+screen = pygame.display.set_mode(size)
 
-veľkosť = 750,500
-
-obrazovka = pygame.display.set_mode(veľkosť)
 pygame.display.set_caption("Tetris")
 
+# Loop until the user clicks the close button.
 done = False
 clock = pygame.time.Clock()
 fps = 25
-game = Tetris
-počítadlo = 0
+game = Tetris(20, 10)
+counter = 0
 
 pressing_down = False
 
 while not done:
-    if game.kocka is None:
-        game.nova_kocka()
-        počítadlo += 1
-    if počítadlo > 1000000:
-        počítadlo = 0
-    if počítadlo % (fps// game.level//2) == 0 or pressing_down:
+    if game.figure is None:
+        game.new_figure()
+    counter += 1
+    if counter > 100000:
+        counter = 0
+
+    if counter % (fps // game.level // 2) == 0 or pressing_down:
         if game.state == "start":
             game.go_down()
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
@@ -148,30 +169,53 @@ while not done:
             if event.key == pygame.K_UP:
                 game.rotate()
             if event.key == pygame.K_DOWN:
-                pressing_down == True
+                pressing_down = True
             if event.key == pygame.K_LEFT:
                 game.go_side(-1)
-            if event.key == pygame.K_RIGTH:
+            if event.key == pygame.K_RIGHT:
                 game.go_side(1)
             if event.key == pygame.K_SPACE:
                 game.go_space()
             if event.key == pygame.K_ESCAPE:
-                game.__init__(20,10)
+                game.__init__(20, 10)
+
     if event.type == pygame.KEYUP:
             if event.key == pygame.K_DOWN:
-                pressing_down == False
+                pressing_down = False
 
+    screen.fill(ČIERNA)
 
+    for i in range(game.height):
+        for j in range(game.width):
+            pygame.draw.rect(screen, BIELA, [game.x + game.zoom * j, game.y + game.zoom * i, game.zoom, game.zoom], 1)
+            if game.field[i][j] > 0:
+                pygame.draw.rect(screen, colors[game.field[i][j]],
+                                 [game.x + game.zoom * j + 1, game.y + game.zoom * i + 1, game.zoom - 2, game.zoom - 1])
 
+    if game.figure is not None:
+        for i in range(4):
+            for j in range(4):
+                p = i * 4 + j
+                if p in game.figure.image():
+                    pygame.draw.rect(screen, colors[game.figure.color],
+                                     [game.x + game.zoom * (j + game.figure.x) + 1,
+                                      game.y + game.zoom * (i + game.figure.y) + 1,
+                                      game.zoom - 2, game.zoom - 2])
 
+    font = pygame.font.SysFont("Arial", 25, True, False)
+    font1 = pygame.font.SysFont("Arial", 60, True, False)
+    text = font.render("Skóre: " + str(game.score), True, BIELA)
+    text_game_over = font1.render("KONIEC HRY", True, (255,255,0))
+    text_game_over1 = font1.render("STLAČ ESC ", True, (255,0,255))
+    screen.blit(text, [0, 0])
+    if game.state == "gameover":
+        screen.blit(text_game_over, [20, 200])
+        screen.blit(text_game_over1, [25, 265])
 
-
-
-
+    pygame.display.flip()
+    clock.tick(fps)
 
 pygame.quit()
-
-
 
 
 
