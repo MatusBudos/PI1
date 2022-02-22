@@ -1,5 +1,7 @@
 import pygame
 import random
+from pygame import mixer
+
 
 colors = [
     (0,0,0),
@@ -81,6 +83,8 @@ class Tetris:
         return intersection
 
     def break_lines(self):
+        zvuk_prilepenie = mixer.Sound("zvuk_rada.wav")
+        zvuk_prilepenie.play()
         lines = 0
         for i in range(1, self.height):
             zeros = 0
@@ -123,16 +127,19 @@ class Tetris:
             self.figure.x = old_x
 
     def rotate(self):
+        zvuk_otocenia = mixer.Sound("zvuk_otocenie.wav")
+        zvuk_otocenia.play()
         old_rotation = self.figure.rotation
         self.figure.rotate()
         if self.intersects():
             self.figure.rotation = old_rotation
 
 
-# Initialize the game engine
-pygame.init()
 
-# Define some colors
+pygame.init()
+mixer.music.load("Tetris.mp3")
+mixer.music.play(-1)
+
 ČIERNA = (0, 0, 0)
 BIELA = (255, 255, 255)
 ŠEDÁ = (128, 128, 128)
@@ -142,7 +149,7 @@ screen = pygame.display.set_mode(size)
 
 pygame.display.set_caption("Tetris")
 
-# Loop until the user clicks the close button.
+
 done = False
 clock = pygame.time.Clock()
 fps = 25
@@ -211,6 +218,8 @@ while not done:
     if game.state == "gameover":
         screen.blit(text_game_over, [20, 200])
         screen.blit(text_game_over1, [25, 265])
+        gameover_zvuk = mixer.Sound("zvuk_gameover.wav")
+        gameover_zvuk.play()
 
     pygame.display.flip()
     clock.tick(fps)
