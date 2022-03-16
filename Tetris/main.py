@@ -2,7 +2,7 @@ import pygame
 import random
 from pygame import mixer
 
-
+#farby kociek#
 colors = [
     (0,0,0),
     (255,255,255),
@@ -18,7 +18,7 @@ colors = [
 class Figure:
     x = 0
     y = 0
-
+#tvary kociek#
     figures = [
         [[1, 5, 9, 13], [4, 5, 6, 7]],
         [[4, 5, 9, 10], [2, 6, 5, 9]],
@@ -66,10 +66,10 @@ class Tetris:
             for j in range(width):
                 new_line.append(0)
             self.field.append(new_line)
-
+#nova kocka#
     def new_figure(self):
         self.figure = Figure(3, 0)
-
+#spojenie kociek
     def intersects(self):
         intersection = False
         for i in range(4):
@@ -81,7 +81,7 @@ class Tetris:
                             self.field[i + self.figure.y][j + self.figure.x] > 0:
                         intersection = True
         return intersection
-
+#vymazanie celej rady#
     def break_lines(self):
         zvuk_prilepenie = mixer.Sound("zvuk_rada.wav")
         zvuk_prilepenie.play()
@@ -97,7 +97,7 @@ class Tetris:
                     for j in range(self.width):
                         self.field[i1][j] = self.field[i1 - 1][j]
         self.score += lines ** 2
-
+#presun hned dole#
     def go_space(self):
         while not self.intersects():
             self.figure.y += 1
@@ -109,7 +109,7 @@ class Tetris:
         if self.intersects():
             self.figure.y -= 1
             self.freeze()
-
+#zastavenie kocky pri dotyku#
     def freeze(self):
         for i in range(4):
             for j in range(4):
@@ -119,13 +119,13 @@ class Tetris:
         self.new_figure()
         if self.intersects():
             self.state = "gameover"
-
+#pohyb do boku#
     def go_side(self, dx):
         old_x = self.figure.x
         self.figure.x += dx
         if self.intersects():
             self.figure.x = old_x
-
+#otacanie#
     def rotate(self):
         zvuk_otocenia = mixer.Sound("zvuk_otocenie.wav")
         zvuk_otocenia.play()
@@ -135,15 +135,17 @@ class Tetris:
             self.figure.rotation = old_rotation
 
 
-
+#spustenie obrazovky#
 pygame.init()
+#hudba pozadia#
 mixer.music.load("Tetris.mp3")
 mixer.music.play(-1)
 
+#farby potrebne pre obrazovku#
 ČIERNA = (0, 0, 0)
 BIELA = (255, 255, 255)
-ŠEDÁ = (128, 128, 128)
 
+#obrazovka#
 size = (400, 500)
 screen = pygame.display.set_mode(size)
 
@@ -157,7 +159,7 @@ game = Tetris(20, 10)
 counter = 0
 
 pressing_down = False
-
+#cyklus opakujuci sa do konca hry#
 while not done:
     if game.figure is None:
         game.new_figure()
@@ -168,7 +170,7 @@ while not done:
     if counter % (fps // game.level // 2) == 0 or pressing_down:
         if game.state == "start":
             game.go_down()
-
+#eventy pre pohyby#
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
@@ -189,7 +191,7 @@ while not done:
     if event.type == pygame.KEYUP:
             if event.key == pygame.K_DOWN:
                 pressing_down = False
-
+#upravenie obrazovky na štvorčeky#
     screen.fill(ČIERNA)
 
     for i in range(game.height):
@@ -208,7 +210,7 @@ while not done:
                                      [game.x + game.zoom * (j + game.figure.x) + 1,
                                       game.y + game.zoom * (i + game.figure.y) + 1,
                                       game.zoom - 2, game.zoom - 2])
-
+#texty
     font = pygame.font.SysFont("Arial", 25, True, False)
     font1 = pygame.font.SysFont("Arial", 60, True, False)
     text = font.render("Skóre: " + str(game.score), True, BIELA)
@@ -223,7 +225,7 @@ while not done:
 
     pygame.display.flip()
     clock.tick(fps)
-
+#vypnutie okna
 pygame.quit()
 
 
