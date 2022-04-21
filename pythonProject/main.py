@@ -115,14 +115,3 @@ renault.zaparkuj(garaz)
 renault.vyparkuj(garaz)
 garaz.vypisanie_aut()
 
-
-
-
-
-
-
-
-
-
-
-
