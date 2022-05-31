@@ -283,8 +283,9 @@ class Asteroid(SpaceObject):
             ship.shield_activate()
             ship_lifes -= 1
         self.delete()
-        crash_sound = mixer.Sound("crash_sound.mp3")
-        crash_sound.play()
+        if ship_lifes >= 0:
+            crash_sound = mixer.Sound("crash_sound.mp3")
+            crash_sound.play()
 
     "Metóda ktorá sa vykoná ak dôjde ku kolízii a asteroidu"
 
@@ -292,7 +293,7 @@ class Asteroid(SpaceObject):
         global score
         self.delete()
         laser.delete()
-        score += 100
+        score += 300
         explode_sound = mixer.Sound("explode_sound.mp3")
         explode_sound.play()
 
@@ -352,6 +353,7 @@ class Game:
     """
 
     def __init__(self):
+        global game_objects
         self.window = None
         game_objects = []
 
@@ -368,6 +370,8 @@ class Game:
                                 'Assetss/PNG/Meteors/meteorGrey_small1.png',
                                 'Assetss/PNG/Meteors/meteorGrey_tiny1.png']
         self.ship_life_image = pyglet.image.load('Assetss/PNG/UI/playerLife1_blue.png')
+        self.background_image = pyglet.image.load('Assetss/Backgrounds/black.png')
+        self.losebackground_image = pyglet.image.load('Assetss/Backgrounds/black.png')
 
     def ship_life(self):
         for i in range(ship_lifes):
@@ -392,6 +396,11 @@ class Game:
         self.create_asteroids(count=7)
         # Pridavanie novych asteroidoch každych 10 sekund
         pyglet.clock.schedule_interval(self.create_asteroids, 10, 1)
+
+        self.background = pyglet.sprite.Sprite(self.background_image)
+        self.losebackground = pyglet.sprite.Sprite(self.losebackground_image)
+        self.background.scale_x = 6
+        self.background.scale_y = 4
 
     def create_asteroids(self, dt=0, count=1):
         "Vytvorenie X asteroidov"
@@ -430,6 +439,35 @@ class Game:
         if score == 1000:
             pygame.mixer.music.load("BG song.mp3")
             pygame.mixer.music.play(-1)
+        if score >= 500:
+            endGame = pyglet.text.Label(text="Vyhral si", font_size=60, color=(0, 255, 255, 255), x=WIDTH // 2,
+                                        y=HEIGHT // 2, anchor_x='center', anchor_y='center')
+            endGame2 = pyglet.text.Label(text="Stlač ESC pre ukončenie", font_size=60, color=(255, 0, 0, 255), x=WIDTH // 2,
+                                         y=HEIGHT // 2 - 100, anchor_x='center', anchor_y='center')
+            game_objects.clear()
+            self.window.clear()
+            self.background.x = WIDTH // 1
+            self.background.y = HEIGHT // 1
+            self.background.draw()
+            endGame.draw()
+            endGame2.draw()
+
+        elif ship_lifes == 0:
+            lose = pyglet.text.Label(text="Prehral si", font_size=60, color=(0, 255, 255, 255), x=WIDTH // 2,
+                                     y=HEIGHT // 2, anchor_x='center', anchor_y='center')
+            escape = pyglet.text.Label(text="Stlač ESC pre ukončenie", font_size=60, color=(255, 0, 0, 255),
+                                         x=WIDTH // 2,
+                                         y=HEIGHT // 2 - 100, anchor_x='center', anchor_y='center')
+            game_objects.clear()
+            self.window.clear()
+            self.losebackground.x = WIDTH // 1
+            self.losebackground.y = HEIGHT // 1
+            self.losebackground.draw()
+            lose.draw()
+            escape.draw()
+
+        if "ESCAPE" in pressed_keyboards:
+                self.window.close()
         "Vykreslenie koliznych koliečok"
         """
         for o in game_objects:
@@ -467,6 +505,8 @@ class Game:
             pressed_keyboards.add('SHIFT')
         if symbol == key.SPACE:
             pressed_keyboards.add('SPACE')
+        if symbol == key.ESCAPE:
+            pressed_keyboards.add("ESCAPE")
 
     """
     Event metóda pre spracovanie klávesových výstupov
@@ -518,7 +558,9 @@ class Game:
         "Nastavenie timeru pre update metódu v intervale 1./60 = 60FPS"
         pyglet.clock.schedule_interval(self.update, 1. / 60)
 
-        pyglet.app.run()  # all is set, the game can start
+        pyglet.app.run()
+
+
 
 
 
